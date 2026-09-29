@@ -1,0 +1,19 @@
+{
+  "info": {
+    "name": "RentalHub Phase 1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000/api" },
+    { "key": "equipmentId", "value": "" }
+  ],
+  "item": [
+    { "name": "Health", "request": { "method": "GET", "url": "{{baseUrl}}/v1/healthz" } },
+    { "name": "Register", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"name\":\"Test Customer\",\"email\":\"test@example.com\",\"password\":\"RentalHub123!\",\"role\":\"customer\"}" }, "url": "{{baseUrl}}/v1/auth/register" } },
+    { "name": "Login", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"email\":\"jordan@rentalhub.local\",\"password\":\"RentalHub123!\"}" }, "url": "{{baseUrl}}/v1/auth/login" } },
+    { "name": "Categories", "request": { "method": "GET", "url": "{{baseUrl}}/v1/categories" } },
+    { "name": "Search equipment", "request": { "method": "GET", "url": "{{baseUrl}}/v1/equipment?q=camera&sort=rating&page=1&limit=12" } },
+    { "name": "Equipment detail", "request": { "method": "GET", "url": "{{baseUrl}}/v1/equipment/{{equipmentId}}" } },
+    { "name": "Current user", "request": { "method": "GET", "url": "{{baseUrl}}/v1/auth/me" } }
+  ]
+}

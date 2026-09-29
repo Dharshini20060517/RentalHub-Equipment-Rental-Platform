@@ -1,0 +1,65 @@
+# PROJECT: RentalHub – Equipment Rental Platform
+
+## Description
+RentalHub is a web-based equipment rental platform connecting customers with equipment owners and
+rental businesses. Users browse equipment, check availability, compare rental options, book for
+specific dates, track rental and return status, and leave reviews. Owners manage listings, pricing,
+availability, and bookings. Administrators manage users, equipment, categories, and platform activity.
+
+## Expected Solutions
+1. Comprehensive digital lifecycle: discovery → booking → pickup → tracking → return, with precise records
+   (no spreadsheets, fewer booking conflicts).
+2. Three roles with clear accountability: Owners (list assets, dynamic pricing, monitor utilization),
+   Customers (compare options, real-time availability, manage rental schedule),
+   Administrators (oversight, quality control, dispute resolution).
+3. Centralized booking and availability engine with a real-time calendar: once booked, equipment is
+   instantly unavailable for those dates platform-wide.
+4. Business analytics via MongoDB aggregation: revenue trends and utilization to maximize asset ROI.
+
+## Core Requirements: Authentication, CRUD, Booking System, File Uploads, MongoDB Aggregation
+Innovation features (AI, scoring, QR, etc.) are ADDITIVE. They must never compromise the core.
+
+## FIXED TECH STACK (do not substitute)
+- Language: JavaScript (ES modules), Node.js LTS
+- Frontend: React (Vite), React Router, Redux Toolkit (slices + createAsyncThunk), Axios,
+  Tailwind CSS, FullCalendar, React Hook Form
+- Backend: Node.js, Express, MongoDB, Mongoose, JWT (access + refresh in httpOnly cookies), bcrypt,
+  Multer + Cloudinary (uploads), Zod (validation), node-cron (scheduled jobs), Socket.IO (real-time availability),
+  Nodemailer (dev: console/Ethereal), Helmet, CORS, express-rate-limit
+- Payments: simulated (deposit hold/release/refund recorded in DB); no external gateway
+- AI (Phases 3–4 only): pluggable provider interface with rule-based fallbacks; app must fully work with no AI key
+- Tools: Git/GitHub, Postman, VS Code, npm, MongoDB Compass. Docker is optional.
+
+## REPO LAYOUT (do not change without asking)
+/server/src/{config,models,controllers,services,routes,middleware,validators,jobs,sockets,utils,tests}
+/client/src/{api,app(store),features(slices),components,pages,routes,hooks,utils}
+/docs/{API_CONTRACT.md,DECISIONS.md,PROGRESS.md,ER.md,AGGREGATIONS.md,postman/}
+
+## GLOBAL RULES
+1. **Vertical slices:** each feature = Mongoose model → service → controller → route → Zod validator →
+   Axios API function → Redux slice/thunk → React page/component → tests → seed data.
+   The UI calls the real API. No mock data in components. Every screen has loading, empty, and error states.
+2. **API:** versioned `/api/v1`; envelope `{ success, data, error:{code,message,details}, meta:{page,limit,total} }`;
+   pagination, filtering, sorting on all lists. Keep `/docs/API_CONTRACT.md` and a Postman collection
+   (`/docs/postman/`) updated in the same change as any endpoint.
+3. **Frontend:** one Axios instance (auth header/cookie, 401 → refresh → retry interceptor); role-guarded
+   React Router routes (public, customer, owner, admin); role-specific layouts; global error boundary;
+   Tailwind mobile-first responsive with dark mode.
+4. **Security:** Zod validation, Helmet, rate limiting, NoSQL-injection sanitization, secure uploads
+   (type/size checks), RBAC on every route, audit logs for sensitive actions.
+5. **MongoDB:** Mongoose; indexes documented; aggregation pipelines saved in `/docs/AGGREGATIONS.md`
+   so they can be run and inspected in MongoDB Compass. Transactions require a replica set: configure
+   local dev as a single-node replica set (or Atlas) and document it.
+6. **Git:** branch per phase (`phase-1-foundation`, etc.), conventional commits, README updated each phase.
+7. **AI outputs** always include confidence and reasoning; AI proposes, humans decide on money and blame.
+8. **Carry-forward:** at phase end update `PROGRESS.md` (features done, page inventory table with
+   route/role/status, endpoints, known issues) and `DECISIONS.md`. At phase start, read `/docs/*`
+   and summarize the current state in 10 lines before coding.
+9. **Integration checkpoint (a phase is not done until):** fresh clone → `npm install` → `npm run dev` →
+   `npm run seed` works; the phase's user journeys are walked through in the UI against the real API;
+   all tests (including earlier phases) pass; nothing from earlier phases is broken.
+10. Confirm folder structure and schema changes before generating code. No TODO stubs in core logic.
+
+Root npm scripts: `dev` (client + server via concurrently), `seed`, `test`, `lint`.
+
+I'll send four phases one at a time. Reply "Ready" and wait for Phase 1.

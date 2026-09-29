@@ -1,0 +1,49 @@
+# PHASE 1: FOUNDATION & MARKETPLACE
+(Brief coverage: Authentication, CRUD, File Uploads, discovery, owner listing management, admin oversight)
+
+## 1. Foundation
+Monorepo scaffold, `.env.example`, ESLint/Prettier, root npm scripts, Git repo with `phase-1-foundation` branch,
+Swagger or API_CONTRACT.md, seed script, Postman collection skeleton, Axios instance with refresh interceptor,
+Redux store, role-guarded router, three role layouts.
+
+## 2. Authentication & Roles
+Register, login, logout, refresh, forgot/reset password (email via Nodemailer dev transport),
+bcrypt hashing, JWT httpOnly cookies. Roles: customer, owner, admin (admin seeded).
+Owners have `accountType: individual | business` (business name, registration number optional).
+Profile page with avatar upload.
+
+## 3. Models (with indexes, soft delete, timestamps)
+`users`, `categories`, `equipment`, `wishlists`, `maintenanceLogs`, `maintenanceWindows`,
+`reviews` (schema only), `notifications` (base), `auditLogs`.
+`equipment`: title, description, category, specs (key/value), images[] (Cloudinary URL + publicId),
+base daily and hourly price, pricing rules, base deposit, replacement value, location (GeoJSON, 2dsphere),
+owner, status (draft/active/paused), buffer time, purchase date, condition notes.
+Text index for search; indexes on category, price, owner, status.
+
+## 4. Customer Features
+Browse and search (keyword, category, price range, rating, distance), sort, pagination; equipment detail
+page (gallery, specs, price, rating, owner); **compare up to 3 items** (price, rating, specs side by side);
+wishlist.
+
+## 5. Owner Features
+- Listing CRUD with multi-image upload (Multer → Cloudinary, validate type and size, delete from Cloudinary on removal).
+- **Pricing rules (dynamic pricing v1):** base price, weekend surcharge, long-duration discount,
+  seasonal override.
+- Availability blocking (owner-blocked date ranges), listing status control.
+- Maintenance logs CRUD and scheduled maintenance windows (stored now so Phase 2's engine respects them).
+
+## 6. Admin Features
+User management (verify, suspend, role view), category CRUD, listing moderation queue, audit log viewer.
+
+## 7. Pages (add each to the Page Inventory)
+Home, Search, Equipment Detail, Compare, Wishlist, Login/Register/Reset, Profile,
+Owner: My Listings, Listing Form, Maintenance. Admin: Users, Categories, Moderation, Audit Log.
+
+## 8. Seed
+3 roles, 8+ categories, 30+ listings with real Cloudinary-hosted or placeholder images across several cities,
+sample reviews.
+
+## Definition of Done
+Integration checkpoint passes; RBAC tests (e.g., a customer cannot edit an owner's listing; an owner cannot
+edit another owner's listing); search, filter, and geo queries work; Postman collection covers auth and
+listings; `PROGRESS.md` and README updated.

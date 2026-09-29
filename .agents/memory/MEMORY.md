@@ -1,0 +1,1 @@
+- [RentalHub phase workflow](rentalhub-phase-workflow.md) — Phase 1 ships discovery and marketplace foundations; booking and rental lifecycle stay isolated for Phase 2.

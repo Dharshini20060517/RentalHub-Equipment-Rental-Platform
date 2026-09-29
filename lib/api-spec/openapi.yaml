@@ -1,15 +1,19 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
-  version: 0.1.0
-  description: API specification
+  version: 1.0.0
+  description: RentalHub Phase 1 marketplace API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
-    description: Health operations
+  - name: auth
+  - name: catalog
+  - name: equipment
+  - name: wishlist
+  - name: maintenance
+  - name: admin
 paths:
   /healthz:
     get:
@@ -24,7 +28,447 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /v1/auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a customer or owner
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: Registered user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+  /v1/auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Log in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Authenticated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+  /v1/auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+  /v1/auth/me:
+    get:
+      operationId: getCurrentUser
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+  /v1/auth/forgot-password:
+    post:
+      operationId: forgotPassword
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordInput"
+      responses:
+        "200":
+          description: Reset instructions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+  /v1/auth/reset-password:
+    post:
+      operationId: resetPassword
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordInput"
+      responses:
+        "200":
+          description: Password reset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+  /v1/categories:
+    get:
+      operationId: listCategories
+      tags: [catalog]
+      summary: List equipment categories
+      responses:
+        "200":
+          description: Category list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+    post:
+      operationId: createCategory
+      tags: [admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryInput"
+      responses:
+        "201":
+          description: Category created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+  /v1/categories/{categoryId}:
+    patch:
+      operationId: updateCategory
+      tags: [admin]
+      parameters:
+        - $ref: "#/components/parameters/CategoryId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryInput"
+      responses:
+        "200":
+          description: Category updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+    delete:
+      operationId: deleteCategory
+      tags: [admin]
+      parameters:
+        - $ref: "#/components/parameters/CategoryId"
+      responses:
+        "200":
+          description: Category deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+  /v1/equipment:
+    get:
+      operationId: listEquipment
+      tags: [catalog, equipment]
+      summary: Search equipment
+      parameters:
+        - { $ref: "#/components/parameters/Search" }
+        - { $ref: "#/components/parameters/CategoryQuery" }
+        - { $ref: "#/components/parameters/MinPrice" }
+        - { $ref: "#/components/parameters/MaxPrice" }
+        - { $ref: "#/components/parameters/City" }
+        - { $ref: "#/components/parameters/Sort" }
+        - { $ref: "#/components/parameters/Page" }
+        - { $ref: "#/components/parameters/Limit" }
+        - { $ref: "#/components/parameters/Status" }
+      responses:
+        "200":
+          description: Paginated equipment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EquipmentListResponse"
+    post:
+      operationId: createEquipment
+      tags: [equipment]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EquipmentInput"
+      responses:
+        "201":
+          description: Equipment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Equipment"
+  /v1/equipment/{equipmentId}:
+    get:
+      operationId: getEquipment
+      tags: [catalog, equipment]
+      parameters:
+        - $ref: "#/components/parameters/EquipmentId"
+      responses:
+        "200":
+          description: Equipment detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Equipment"
+    patch:
+      operationId: updateEquipment
+      tags: [equipment]
+      parameters:
+        - $ref: "#/components/parameters/EquipmentId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EquipmentUpdate"
+      responses:
+        "200":
+          description: Updated equipment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Equipment"
+    delete:
+      operationId: deleteEquipment
+      tags: [equipment]
+      parameters:
+        - $ref: "#/components/parameters/EquipmentId"
+      responses:
+        "200":
+          description: Equipment deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+  /v1/equipment/compare:
+    get:
+      operationId: compareEquipment
+      tags: [catalog]
+      summary: Compare up to three listings
+      parameters:
+        - name: ids
+          in: query
+          required: true
+          schema:
+            type: string
+            description: Comma-separated equipment ids
+      responses:
+        "200":
+          description: Equipment comparison
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Equipment"
+  /v1/wishlist:
+    get:
+      operationId: listWishlist
+      tags: [wishlist]
+      responses:
+        "200":
+          description: Wishlist equipment
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Equipment"
+    post:
+      operationId: addWishlist
+      tags: [wishlist]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WishlistInput"
+      responses:
+        "201":
+          description: Added to wishlist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+  /v1/wishlist/{equipmentId}:
+    delete:
+      operationId: removeWishlist
+      tags: [wishlist]
+      parameters:
+        - $ref: "#/components/parameters/EquipmentId"
+      responses:
+        "200":
+          description: Removed from wishlist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+  /v1/maintenance:
+    get:
+      operationId: listMaintenance
+      tags: [maintenance]
+      responses:
+        "200":
+          description: Maintenance records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MaintenanceLog"
+    post:
+      operationId: createMaintenance
+      tags: [maintenance]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MaintenanceInput"
+      responses:
+        "201":
+          description: Maintenance record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaintenanceLog"
+  /v1/maintenance/{maintenanceId}:
+    delete:
+      operationId: deleteMaintenance
+      tags: [maintenance]
+      parameters:
+        - name: maintenanceId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Maintenance deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+  /v1/admin/users:
+    get:
+      operationId: listUsers
+      tags: [admin]
+      responses:
+        "200":
+          description: Users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+  /v1/admin/users/{userId}:
+    patch:
+      operationId: updateUserStatus
+      tags: [admin]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserStatusInput"
+      responses:
+        "200":
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+  /v1/admin/overview:
+    get:
+      operationId: getAdminOverview
+      tags: [admin]
+      responses:
+        "200":
+          description: Platform overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOverview"
 components:
+  parameters:
+    EquipmentId:
+      name: equipmentId
+      in: path
+      required: true
+      schema: { type: string }
+    CategoryId:
+      name: categoryId
+      in: path
+      required: true
+      schema: { type: string }
+    Search:
+      name: q
+      in: query
+      schema: { type: string }
+    CategoryQuery:
+      name: category
+      in: query
+      schema: { type: string }
+    MinPrice:
+      name: minPrice
+      in: query
+      schema: { type: number }
+    MaxPrice:
+      name: maxPrice
+      in: query
+      schema: { type: number }
+    City:
+      name: city
+      in: query
+      schema: { type: string }
+    Sort:
+      name: sort
+      in: query
+      schema:
+        type: string
+        enum: [recommended, price-asc, price-desc, rating]
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    Limit:
+      name: limit
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 50, default: 12 }
+    Status:
+      name: status
+      in: query
+      schema:
+        type: string
+        enum: [draft, active, paused]
   schemas:
     HealthStatus:
       type: object
@@ -33,4 +477,221 @@ components:
           type: string
       required:
         - status
+    MessageResponse:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string }
+    RegisterInput:
+      type: object
+      required: [name, email, password, role]
+      properties:
+        name: { type: string, minLength: 2 }
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8 }
+        role:
+          type: string
+          enum: [customer, owner]
+        accountType:
+          type: string
+          enum: [individual, business]
+        businessName: { type: string }
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+    ForgotPasswordInput:
+      type: object
+      required: [email]
+      properties:
+        email: { type: string, format: email }
+    ResetPasswordInput:
+      type: object
+      required: [token, password]
+      properties:
+        token: { type: string }
+        password: { type: string, minLength: 8 }
+    AuthResponse:
+      type: object
+      required: [user]
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+    User:
+      type: object
+      required: [id, name, email, role, status, createdAt]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        email: { type: string }
+        role:
+          type: string
+          enum: [customer, owner, admin]
+        accountType:
+          type: string
+          enum: [individual, business]
+        businessName: { type: ["string", "null"] }
+        avatarUrl: { type: ["string", "null"] }
+        status:
+          type: string
+          enum: [active, suspended, pending]
+        createdAt: { type: string, format: date-time }
+    Category:
+      type: object
+      required: [id, name, slug, equipmentCount]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        slug: { type: string }
+        description: { type: ["string", "null"] }
+        equipmentCount: { type: integer }
+    CategoryInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 2 }
+        description: { type: string }
+    Image:
+      type: object
+      required: [url]
+      properties:
+        url: { type: string, format: uri }
+        publicId: { type: ["string", "null"] }
+    PricingRules:
+      type: object
+      properties:
+        weekendSurcharge: { type: number, minimum: 0 }
+        longDurationDiscount: { type: number, minimum: 0, maximum: 1 }
+        seasonalOverride: { type: number, minimum: 0 }
+    Location:
+      type: object
+      required: [city, region]
+      properties:
+        city: { type: string }
+        region: { type: string }
+        latitude: { type: number }
+        longitude: { type: number }
+    Equipment:
+      type: object
+      required: [id, title, description, category, images, baseDailyPrice, baseHourlyPrice, baseDeposit, location, owner, status, rating, reviewCount, specs]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        description: { type: string }
+        category:
+          $ref: "#/components/schemas/Category"
+        specs:
+          type: object
+          additionalProperties: { type: string }
+        images:
+          type: array
+          items: { $ref: "#/components/schemas/Image" }
+        baseDailyPrice: { type: number }
+        baseHourlyPrice: { type: number }
+        pricingRules:
+          $ref: "#/components/schemas/PricingRules"
+        baseDeposit: { type: number }
+        replacementValue: { type: number }
+        location:
+          $ref: "#/components/schemas/Location"
+        owner:
+          $ref: "#/components/schemas/User"
+        status:
+          type: string
+          enum: [draft, active, paused]
+        bufferTimeHours: { type: integer }
+        purchaseDate: { type: ["string", "null"], format: date }
+        conditionNotes: { type: ["string", "null"] }
+        rating: { type: number }
+        reviewCount: { type: integer }
+        createdAt: { type: string, format: date-time }
+    EquipmentInput:
+      type: object
+      required: [title, description, categoryId, baseDailyPrice, baseHourlyPrice, baseDeposit, replacementValue, location, specs]
+      properties:
+        title: { type: string, minLength: 3 }
+        description: { type: string, minLength: 10 }
+        categoryId: { type: string }
+        specs:
+          type: object
+          additionalProperties: { type: string }
+        images:
+          type: array
+          items: { $ref: "#/components/schemas/Image" }
+        baseDailyPrice: { type: number, minimum: 0 }
+        baseHourlyPrice: { type: number, minimum: 0 }
+        pricingRules:
+          $ref: "#/components/schemas/PricingRules"
+        baseDeposit: { type: number, minimum: 0 }
+        replacementValue: { type: number, minimum: 0 }
+        location:
+          $ref: "#/components/schemas/Location"
+        status:
+          type: string
+          enum: [draft, active, paused]
+        bufferTimeHours: { type: integer, minimum: 0 }
+        conditionNotes: { type: string }
+    EquipmentUpdate:
+      allOf:
+        - $ref: "#/components/schemas/EquipmentInput"
+      description: All listing fields are optional during updates.
+    EquipmentListResponse:
+      type: object
+      required: [items, meta]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/Equipment" }
+        meta:
+          $ref: "#/components/schemas/PaginationMeta"
+    PaginationMeta:
+      type: object
+      required: [page, limit, total, totalPages]
+      properties:
+        page: { type: integer }
+        limit: { type: integer }
+        total: { type: integer }
+        totalPages: { type: integer }
+    WishlistInput:
+      type: object
+      required: [equipmentId]
+      properties:
+        equipmentId: { type: string }
+    MaintenanceInput:
+      type: object
+      required: [equipmentId, title, startDate, endDate]
+      properties:
+        equipmentId: { type: string }
+        title: { type: string }
+        notes: { type: string }
+        startDate: { type: string, format: date }
+        endDate: { type: string, format: date }
+    MaintenanceLog:
+      allOf:
+        - $ref: "#/components/schemas/MaintenanceInput"
+        - type: object
+          required: [id, status]
+          properties:
+            id: { type: string }
+            status:
+              type: string
+              enum: [scheduled, completed, cancelled]
+    UserStatusInput:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [active, suspended, pending]
+    AdminOverview:
+      type: object
+      required: [users, listings, activeListings, categories]
+      properties:
+        users: { type: integer }
+        listings: { type: integer }
+        activeListings: { type: integer }
+        categories: { type: integer }
+        pendingModeration: { type: integer }
 

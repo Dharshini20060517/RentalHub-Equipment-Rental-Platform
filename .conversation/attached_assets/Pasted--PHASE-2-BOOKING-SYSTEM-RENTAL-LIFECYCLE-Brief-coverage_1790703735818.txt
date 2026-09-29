@@ -1,0 +1,46 @@
+# PHASE 2: BOOKING SYSTEM & RENTAL LIFECYCLE
+(Brief coverage: Booking System, centralized availability, real-time calendar, tracking, reviews, disputes)
+
+## 1. Centralized Booking Engine (critical)
+- A single `BookingService` is the ONLY path to create or change bookings.
+- Overlap validation inside a MongoDB transaction plus a compound index
+  `{equipmentId, startDate, endDate, status}` so concurrent requests can never confirm overlapping bookings.
+  If transactions are unavailable, fall back to atomic per-equipment date locking.
+- **10-minute checkout hold**, released by a node-cron job (TTL index as backup).
+- Respect per-equipment buffer time, Phase 1 maintenance windows, and owner-blocked dates.
+- **State machine:** PENDING → HELD → CONFIRMED → PICKED_UP → IN_USE → RETURN_PENDING → RETURNED →
+  INSPECTED → COMPLETED, plus CANCELLED, LATE, DISPUTED. Reject illegal transitions.
+- Idempotency keys on booking and payment endpoints.
+- Price calculation from Phase 1 pricing rules; deposit v1 from item value and duration
+  (interface ready for a trust-score input in Phase 3); platform commission % stored on completed bookings.
+- Simulated payments: `payments` model with deposit hold, release, refund.
+- **Concurrency test:** 50 parallel requests for one slot → exactly one succeeds.
+
+## 2. Real-Time Calendar (FullCalendar)
+- Equipment detail: availability calendar showing booked, blocked, and maintenance ranges; select a range to book.
+- Owner: master calendar across all listings (bookings, blocks, maintenance).
+- Customer: "My Rental Schedule" calendar.
+- Socket.IO `availability:updated` event per equipment so a booking instantly greys out those dates for every
+  viewer; fall back to 30s polling if the socket is down.
+
+## 3. Rental Lifecycle
+- Pickup and return flow with checklist and **photo upload** (Cloudinary); store timestamps and file hashes.
+- Status timeline (stepper) for customers and owners.
+- Late detection cron with grace period and configurable late fees.
+- Extension requests (engine checks conflict with the next booking).
+- Cancellation policy per listing (flexible/moderate/strict) driving refund calculation.
+- **Reviews:** two-way (customer rates equipment, owner rates customer), only after COMPLETED;
+  average rating recalculated on the listing.
+- **Disputes v1:** raise, upload evidence, owner response, admin resolution, full status history.
+- **Booking chat:** per-booking messages (Socket.IO with REST persistence), kept as dispute evidence.
+- **Notifications:** in-app + email for booking events, reminders, late warnings.
+
+## 4. Pages
+Customer: Checkout, My Rentals (tracker), Booking Detail (timeline, chat), Return, Review, Raise Dispute.
+Owner: Booking Requests (manual or auto approval), Owner Calendar, Pickup/Return Inspection, Dispute Response.
+Admin: All Bookings, Disputes Console (basic).
+
+## Definition of Done
+Concurrency and state-machine tests pass; full flow works in the UI:
+search → hold → pay → pickup → return → inspection → review; second browser session sees the dates greyed
+out instantly; Postman collection extended; `PROGRESS.md`, API_CONTRACT and demo script updated.
